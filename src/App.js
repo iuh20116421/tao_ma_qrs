@@ -7,7 +7,7 @@ import logoImage from './image/Logo.png';
 const { Title, Text, Paragraph } = Typography;
 
 function App() {
-  const [url, setUrl] = useState('https://checkin.tukilab.asia/');
+  const [url, setUrl] = useState('https://checkinsukien.tukilab.asia/');
   const [qrCodeDataURL, setQrCodeDataURL] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [logoPosition, setLogoPosition] = useState('center'); // center, top-left, top-right, bottom-left, bottom-right
@@ -397,7 +397,7 @@ function App() {
           <div style={{ textAlign: 'center', marginTop: 20 }}>
             <Text type="secondary" style={{ fontSize: '12px' }}>
               Được tạo bởi QR Check-in Generator | 
-              <a href="https://checkin.tukilab.asia/" target="_blank" rel="noopener noreferrer">
+              <a href="https://checkinsukien.tukilab.asia/" target="_blank" rel="noopener noreferrer">
                 Truy cập trang checkin
               </a>
             </Text>

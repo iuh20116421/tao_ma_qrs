@@ -28,7 +28,7 @@ yarn start
 
 ## Sử dụng
 
-1. Nhập URL checkin vào ô input (mặc định: https://checkin.tukilab.asia/)
+1. Nhập URL checkin vào ô input (mặc định: https://checkinsukien.tukilab.asia/)
 2. Nhấn nút "Tạo Mã QR"
 3. Tải xuống hoặc sao chép mã QR
 
@@ -47,4 +47,4 @@ yarn build
 
 ## Demo
 
-Truy cập: https://checkin.tukilab.asia/ để xem demo
+Truy cập: https://checkinsukien.tukilab.asia/ để xem demo

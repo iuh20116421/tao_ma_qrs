@@ -16,47 +16,64 @@ function App() {
 
   // Ẩn lỗi zaloJSV2 và các lỗi runtime khác
   useEffect(() => {
+    // Ẩn lỗi zaloJSV2 ngay lập tức
+    const hideZaloError = () => {
+      // Ẩn error overlay
+      const errorOverlays = document.querySelectorAll('[data-react-error-overlay], div[style*="position: fixed"]');
+      errorOverlays.forEach(overlay => {
+        if (overlay.textContent.includes('zaloJSV2') || 
+            overlay.textContent.includes('Can\'t find variable') ||
+            overlay.textContent.includes('Uncaught runtime errors')) {
+          overlay.style.display = 'none';
+          overlay.remove();
+        }
+      });
+
+      // Ẩn error boundary
+      const errorBoundaries = document.querySelectorAll('div[style*="position: fixed"], div[style*="z-index"]');
+      errorBoundaries.forEach(boundary => {
+        if (boundary.textContent.includes('zaloJSV2') || 
+            boundary.textContent.includes('Can\'t find variable') ||
+            boundary.textContent.includes('Uncaught runtime errors')) {
+          boundary.style.display = 'none';
+          boundary.remove();
+        }
+      });
+    };
+
+    // Ẩn ngay lập tức
+    hideZaloError();
+
+    // Ẩn console errors
     const originalError = console.error;
-    const originalWarn = console.warn;
-    
     console.error = (...args) => {
       const errorMessage = args.join(' ');
-      if (errorMessage.includes('zaloJSV2') || errorMessage.includes('Can\'t find variable')) {
+      if (errorMessage.includes('zaloJSV2') || 
+          errorMessage.includes('Can\'t find variable') ||
+          errorMessage.includes('Uncaught runtime errors')) {
         return; // Ẩn lỗi zaloJSV2
       }
       originalError.apply(console, args);
     };
-    
-    console.warn = (...args) => {
-      const warnMessage = args.join(' ');
-      if (warnMessage.includes('zaloJSV2') || warnMessage.includes('Can\'t find variable')) {
-        return; // Ẩn warning zaloJSV2
-      }
-      originalWarn.apply(console, args);
-    };
 
-    // Ẩn lỗi runtime error overlay
-    const hideErrorOverlay = () => {
-      const errorOverlay = document.querySelector('[data-react-error-overlay]');
-      if (errorOverlay) {
-        errorOverlay.style.display = 'none';
-      }
-      
-      const errorBoundary = document.querySelector('div[style*="position: fixed"]');
-      if (errorBoundary && errorBoundary.textContent.includes('Uncaught runtime errors')) {
-        errorBoundary.style.display = 'none';
-      }
-    };
+    // Theo dõi DOM changes
+    const observer = new MutationObserver(() => {
+      hideZaloError();
+    });
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
 
-    // Ẩn lỗi ngay lập tức và theo dõi thay đổi DOM
-    hideErrorOverlay();
-    const observer = new MutationObserver(hideErrorOverlay);
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Ẩn lỗi mỗi 100ms
+    const interval = setInterval(hideZaloError, 100);
 
     return () => {
       console.error = originalError;
-      console.warn = originalWarn;
       observer.disconnect();
+      clearInterval(interval);
     };
   }, []);
 

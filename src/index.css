@@ -86,6 +86,24 @@ code {
   font-size: 14px;
 }
 
+/* Ẩn error overlay zaloJSV2 */
+[data-react-error-overlay],
+div[style*="position: fixed"][style*="z-index"] {
+  display: none !important;
+}
+
+/* Ẩn error boundary */
+div[style*="position: fixed"] {
+  display: none !important;
+}
+
+/* Ẩn error messages */
+div:has-text("zaloJSV2"),
+div:has-text("Can't find variable"),
+div:has-text("Uncaught runtime errors") {
+  display: none !important;
+}
+
 @media (max-width: 600px) {
   .qr-card {
     padding: 20px;

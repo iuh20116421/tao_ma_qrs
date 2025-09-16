@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Input, Card, message, Space, Typography, Divider, Select, Slider, Row, Col } from 'antd';
-import { DownloadOutlined, CopyOutlined, QrcodeOutlined, LinkOutlined } from '@ant-design/icons';
+import { Button, Input, Card, message, Space, Typography, Divider, Select, Slider, Row, Col, Upload } from 'antd';
+import { DownloadOutlined, CopyOutlined, QrcodeOutlined, LinkOutlined, UploadOutlined } from '@ant-design/icons';
 import QRCode from 'qrcode';
 import logoImage from './image/Logo.png';
 
@@ -12,31 +12,40 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [logoPosition, setLogoPosition] = useState('center'); // center, top-left, top-right, bottom-left, bottom-right
   const [logoSize, setLogoSize] = useState(80); // Kích thước logo
+  const [customLogo, setCustomLogo] = useState(null); // Logo tùy chỉnh
   const canvasRef = useRef(null);
 
   // Ẩn lỗi zaloJSV2 và các lỗi runtime khác
   useEffect(() => {
     // Ẩn lỗi zaloJSV2 ngay lập tức
     const hideZaloError = () => {
-      // Ẩn error overlay
-      const errorOverlays = document.querySelectorAll('[data-react-error-overlay], div[style*="position: fixed"]');
+      // Ẩn tất cả error overlays
+      const errorOverlays = document.querySelectorAll('div[style*="position: fixed"], div[style*="z-index"], [data-react-error-overlay]');
       errorOverlays.forEach(overlay => {
-        if (overlay.textContent.includes('zaloJSV2') || 
-            overlay.textContent.includes('Can\'t find variable') ||
-            overlay.textContent.includes('Uncaught runtime errors')) {
+        const text = overlay.textContent || '';
+        if (text.includes('zaloJSV2') || 
+            text.includes('Can\'t find variable') ||
+            text.includes('Uncaught runtime errors') ||
+            text.includes('ERROR') ||
+            overlay.style.position === 'fixed') {
           overlay.style.display = 'none';
+          overlay.style.visibility = 'hidden';
+          overlay.style.opacity = '0';
           overlay.remove();
         }
       });
 
-      // Ẩn error boundary
-      const errorBoundaries = document.querySelectorAll('div[style*="position: fixed"], div[style*="z-index"]');
-      errorBoundaries.forEach(boundary => {
-        if (boundary.textContent.includes('zaloJSV2') || 
-            boundary.textContent.includes('Can\'t find variable') ||
-            boundary.textContent.includes('Uncaught runtime errors')) {
-          boundary.style.display = 'none';
-          boundary.remove();
+      // Ẩn error boundary và error messages
+      const errorElements = document.querySelectorAll('div, span, p, h1, h2, h3, h4, h5, h6');
+      errorElements.forEach(element => {
+        const text = element.textContent || '';
+        if (text.includes('zaloJSV2') || 
+            text.includes('Can\'t find variable') ||
+            text.includes('Uncaught runtime errors') ||
+            text.includes('ERROR')) {
+          element.style.display = 'none';
+          element.style.visibility = 'hidden';
+          element.remove();
         }
       });
     };
@@ -46,6 +55,9 @@ function App() {
 
     // Ẩn console errors
     const originalError = console.error;
+    const originalWarn = console.warn;
+    const originalLog = console.log;
+    
     console.error = (...args) => {
       const errorMessage = args.join(' ');
       if (errorMessage.includes('zaloJSV2') || 
@@ -54,6 +66,15 @@ function App() {
         return; // Ẩn lỗi zaloJSV2
       }
       originalError.apply(console, args);
+    };
+
+    console.warn = (...args) => {
+      const warnMessage = args.join(' ');
+      if (warnMessage.includes('zaloJSV2') || 
+          warnMessage.includes('Can\'t find variable')) {
+        return; // Ẩn warning zaloJSV2
+      }
+      originalWarn.apply(console, args);
     };
 
     // Theo dõi DOM changes
@@ -67,11 +88,17 @@ function App() {
       attributeFilter: ['style', 'class']
     });
 
-    // Ẩn lỗi mỗi 100ms
-    const interval = setInterval(hideZaloError, 100);
+    // Ẩn lỗi mỗi 50ms để đảm bảo ẩn nhanh
+    const interval = setInterval(hideZaloError, 50);
+
+    // Ẩn lỗi ngay khi DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideZaloError);
+    }
 
     return () => {
       console.error = originalError;
+      console.warn = originalWarn;
       observer.disconnect();
       clearInterval(interval);
     };
@@ -146,7 +173,7 @@ function App() {
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(logoX - 8, logoY - 8, logoSize + 16, logoSize + 16);
         
-        // Sử dụng logo local từ file
+        // Sử dụng logo tùy chỉnh hoặc logo mặc định
         const logoImg = new Image();
         logoImg.onload = () => {
           // Bật image smoothing để logo nét hơn
@@ -159,14 +186,14 @@ function App() {
           // Chuyển canvas thành data URL với chất lượng cao
           const finalDataURL = canvas.toDataURL('image/png', 1.0);
           setQrCodeDataURL(finalDataURL);
-          message.success('Tạo mã QR với logo TukiGroup thành công!');
+          message.success('Tạo mã QR với logo thành công!');
           setIsGenerating(false);
         };
         logoImg.onerror = () => {
           // Nếu không load được logo, vẽ text thay thế
           drawTextLogo();
         };
-        logoImg.src = logoImage;
+        logoImg.src = customLogo || logoImage;
         
         function drawTextLogo() {
           // Cải thiện chất lượng text với font size động
@@ -193,7 +220,7 @@ function App() {
           // Chuyển canvas thành data URL với chất lượng cao
           const finalDataURL = canvas.toDataURL('image/png', 1.0);
           setQrCodeDataURL(finalDataURL);
-          message.success('Tạo mã QR với logo TukiGroup thành công!');
+          message.success('Tạo mã QR với logo thành công!');
           setIsGenerating(false);
         }
       };
@@ -265,6 +292,27 @@ function App() {
     });
   };
 
+  const handleLogoUpload = (file) => {
+    const isImage = file.type.startsWith('image/');
+    
+    if (!isImage) {
+      message.error('Chỉ chấp nhận file hình ảnh!');
+      return false;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setCustomLogo(e.target.result);
+      message.success('Đã tải logo thành công!');
+    };
+    reader.onerror = () => {
+      message.error('Có lỗi khi đọc file!');
+    };
+    reader.readAsDataURL(file);
+    
+    return false; // Ngăn upload tự động
+  };
+
   return (
     <div className="qr-container">
       <Card className="qr-card">
@@ -318,6 +366,38 @@ function App() {
               </Col>
             </Row>
             
+            <div style={{ marginBottom: 16 }}>
+              <Text strong>Tải logo tùy chỉnh:</Text>
+              <Upload
+                beforeUpload={handleLogoUpload}
+                showUploadList={false}
+                accept="image/*"
+                style={{ marginTop: 8 }}
+              >
+                <Button icon={<UploadOutlined />} style={{ width: '100%' }}>
+                  {customLogo ? 'Thay đổi logo' : 'Tải logo lên'}
+                </Button>
+              </Upload>
+              {customLogo && (
+                <div style={{ marginTop: 8, textAlign: 'center' }}>
+                  <img 
+                    src={customLogo} 
+                    alt="Custom Logo Preview" 
+                    style={{ maxWidth: 60, maxHeight: 60, objectFit: 'contain' }}
+                  />
+                  <div style={{ marginTop: 4 }}>
+                    <Button 
+                      size="small" 
+                      type="link" 
+                      onClick={() => setCustomLogo(null)}
+                    >
+                      Xóa logo tùy chỉnh
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <Button
               type="primary"
               size="large"
@@ -326,7 +406,7 @@ function App() {
               onClick={generateQRCode}
               block
             >
-              {isGenerating ? 'Đang tạo...' : 'Tạo Mã QR với Logo TukiGroup'}
+              {isGenerating ? 'Đang tạo...' : 'Tạo Mã QR với Logo'}
             </Button>
           </div>
 

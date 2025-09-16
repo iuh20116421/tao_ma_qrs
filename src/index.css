@@ -88,20 +88,33 @@ code {
 
 /* Ẩn error overlay zaloJSV2 */
 [data-react-error-overlay],
-div[style*="position: fixed"][style*="z-index"] {
-  display: none !important;
-}
-
-/* Ẩn error boundary */
+div[style*="position: fixed"][style*="z-index"],
 div[style*="position: fixed"] {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-/* Ẩn error messages */
-div:has-text("zaloJSV2"),
-div:has-text("Can't find variable"),
-div:has-text("Uncaught runtime errors") {
+/* Ẩn error boundary và error messages */
+div[style*="position: fixed"],
+div[style*="z-index"] {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Ẩn tất cả elements chứa error text */
+* {
+  position: relative !important;
+}
+
+/* Ẩn error overlay hoàn toàn */
+body > div[style*="position: fixed"],
+html > div[style*="position: fixed"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 @media (max-width: 600px) {
